@@ -28,9 +28,24 @@ interface AppProps {
 
 export function App({ appConfig }: AppProps) {
   const tokenSource = useMemo(() => {
-    return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string'
-      ? getSandboxTokenSource(appConfig)
-      : TokenSource.endpoint('/api/token');
+    return TokenSource.custom(async () => {
+      const selectedLang = (typeof window !== 'undefined' && (window as any).__FINVOICE_SELECTED_LANGUAGE__) || 'English';
+      const roomConfig = appConfig.agentName
+        ? { agents: [{ agent_name: appConfig.agentName }] }
+        : undefined;
+      const res = await fetch('/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          room_config: roomConfig,
+          language: selectedLang,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch connection token: ${res.statusText}`);
+      }
+      return await res.json();
+    });
   }, [appConfig]);
 
   const session = useSession(
@@ -41,7 +56,7 @@ export function App({ appConfig }: AppProps) {
   return (
     <AgentSessionProvider session={session}>
       <AppSetup />
-      <main className="grid h-svh grid-cols-1 place-content-center">
+      <main className="min-h-screen w-full flex flex-col">
         <ViewController appConfig={appConfig} />
       </main>
       <StartAudioButton label="Start Audio" />
