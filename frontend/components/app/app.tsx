@@ -26,11 +26,49 @@ interface AppProps {
   appConfig: AppConfig;
 }
 
+/**
+ * Returns a stable anonymous user ID stored in localStorage.
+ * On first visit a UUID-style ID is generated and saved.
+ * This persists across page refreshes and agent restarts (same browser).
+ */
+function getOrCreateUserId(): string {
+  const KEY = 'finvoice_user_id';
+  if (typeof window === 'undefined') return 'ssr-placeholder';
+  let uid = localStorage.getItem(KEY);
+  if (!uid) {
+    // Simple UUID v4 generator — no external deps needed
+    uid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+    localStorage.setItem(KEY, uid);
+  }
+  return uid;
+}
+
 export function App({ appConfig }: AppProps) {
   const tokenSource = useMemo(() => {
-    return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string'
-      ? getSandboxTokenSource(appConfig)
-      : TokenSource.endpoint('/api/token');
+    return TokenSource.custom(async () => {
+      const selectedLang = (typeof window !== 'undefined' && (window as any).__FINVOICE_SELECTED_LANGUAGE__) || 'English';
+      const userId = getOrCreateUserId();
+      const roomConfig = appConfig.agentName
+        ? { agents: [{ agent_name: appConfig.agentName }] }
+        : undefined;
+      const res = await fetch('/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          room_config: roomConfig,
+          language: selectedLang,
+          user_id: userId,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch connection token: ${res.statusText}`);
+      }
+      return await res.json();
+    });
   }, [appConfig]);
 
   const session = useSession(
@@ -41,7 +79,7 @@ export function App({ appConfig }: AppProps) {
   return (
     <AgentSessionProvider session={session}>
       <AppSetup />
-      <main className="grid h-svh grid-cols-1 place-content-center">
+      <main className="min-h-screen w-full flex flex-col">
         <ViewController appConfig={appConfig} />
       </main>
       <StartAudioButton label="Start Audio" />
