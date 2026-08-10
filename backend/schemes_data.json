@@ -1,0 +1,70 @@
+{
+  "pm_jan_dhan": {
+    "name": "Pradhan Mantri Jan Dhan Yojana (PMJDY)",
+    "source": "https://www.pmjdy.gov.in/",
+    "verified_date": "2026-08-10",
+    "description": "National Mission for Financial Inclusion to ensure access to financial services like savings accounts, remittance, credit, insurance, and pension.",
+    "rules": {
+      "min_age": 10
+    }
+  },
+  "pm_kisan": {
+    "name": "Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)",
+    "source": "https://pmkisan.gov.in/",
+    "verified_date": "2026-08-10",
+    "description": "Central Sector Scheme providing income support of Rs. 6,000 per year in three equal installments to all landholding farmer families.",
+    "rules": {
+      "requires_farmer": true
+    }
+  },
+  "atal_pension": {
+    "name": "Atal Pension Yojana (APY)",
+    "source": "https://www.myscheme.gov.in/schemes/apy",
+    "verified_date": "2026-08-10",
+    "description": "Pension scheme for citizens of India focused on the unorganized sector workers.",
+    "rules": {
+      "min_age": 18,
+      "max_age": 40
+    }
+  },
+  "sukanya_samriddhi": {
+    "name": "Sukanya Samriddhi Yojana (SSY)",
+    "source": "https://nsiindia.gov.in/InternalPage.aspx?Id_Pk=89",
+    "verified_date": "2026-08-10",
+    "description": "Small savings scheme for a girl child launched under the Beti Bachao Beti Padhao campaign.",
+    "rules": {
+      "requires_girl_child": true,
+      "max_girl_child_age": 10
+    }
+  },
+  "pm_mudra": {
+    "name": "Pradhan Mantri MUDRA Yojana (PMMY)",
+    "source": "https://www.mudra.org.in/",
+    "verified_date": "2026-08-10",
+    "description": "Scheme for providing loans up to Rs. 10 Lakhs to non-corporate, non-farm small/micro enterprises.",
+    "rules": {
+      "min_age": 18,
+      "requires_business_purpose": true
+    }
+  },
+  "pmjjby": {
+    "name": "Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)",
+    "source": "https://www.myscheme.gov.in/schemes/pmjjby",
+    "verified_date": "2026-08-10",
+    "description": "One-year life insurance scheme renewable from year to year offering life cover of Rs. 2 Lakhs.",
+    "rules": {
+      "min_age": 18,
+      "max_age": 50
+    }
+  },
+  "pmsby": {
+    "name": "Pradhan Mantri Suraksha Bima Yojana (PMSBY)",
+    "source": "https://www.myscheme.gov.in/schemes/pmsby",
+    "verified_date": "2026-08-10",
+    "description": "One-year accidental insurance scheme renewable from year to year offering accidental death and disability cover of Rs. 2 Lakhs.",
+    "rules": {
+      "min_age": 18,
+      "max_age": 70
+    }
+  }
+}
