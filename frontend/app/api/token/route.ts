@@ -30,8 +30,10 @@ export async function POST(req: Request) {
       throw new Error('LIVEKIT_API_SECRET is not defined');
     }
 
-    // Parse room config from request body (if provided).
+    // Parse room config and language from request body (if provided).
     const body = await req.json().catch(() => ({}));
+    const language = body?.language || 'English';
+
     let roomConfig: RoomConfiguration | undefined;
     if (body?.room_config) {
       roomConfig = RoomConfiguration.fromJson(body.room_config, { ignoreUnknownFields: true });
@@ -45,12 +47,22 @@ export async function POST(req: Request) {
     }
       
     // Generate participant token
+    // Use a stable user_id from the client (stored in localStorage) so the backend
+    // can identify returning callers across sessions and agent restarts.
     const participantName = 'user';
-    const participantIdentity = `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;
+    const stableUserId = body?.user_id ? String(body.user_id) : null;
+    const participantIdentity = stableUserId
+      ? `finvoice_${stableUserId}`
+      : `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;
     const roomName = `voice_assistant_room_${Math.floor(Math.random() * 10_000)}`;
 
     const participantToken = await createParticipantToken(
-      { identity: participantIdentity, name: participantName },
+      {
+        identity: participantIdentity,
+        name: participantName,
+        attributes: { language },
+        metadata: JSON.stringify({ language }),
+      },
       roomName,
       roomConfig
     );
