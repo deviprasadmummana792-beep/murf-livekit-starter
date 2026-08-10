@@ -1,278 +1,346 @@
-# Voice Agent Starter — Powered by Murf Falcon
+# 🎙️ FinVoice – AI Financial Support Voice Assistant
 
-Build a production voice AI agent in 5 minutes. Powered by the fastest TTS on the market - swap the system prompt to build anything from customer support to language tutors.
+FinVoice is a voice-enabled financial assistance agent built as part of the **10 Days of Voice Agents** challenge. Powered by **Murf Falcon TTS** and **LiveKit real-time communication**, FinVoice delivers an ultra-low-latency, multilingual financial guidance system, fraud prevention education, and government scheme eligibility checks to Indian citizens.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Murf Falcon](https://img.shields.io/badge/TTS-Murf%20Falcon-6366F1)](https://murf.ai/api/docs/text-to-speech/streaming) [![LiveKit](https://img.shields.io/badge/Transport-LiveKit-002cf2)](https://docs.livekit.io) [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-
----
-
-## Why Murf Falcon
-
-- **55ms model latency** - fastest production TTS
-- **130ms time-to-first-audio** across 10+ global regions
-- **$0.01/1000 characters** - up to 10x cheaper than alternatives
-- **150+ voices** across 35+ languages
-- **99.38% pronunciation accuracy**
+[![Challenge](https://img.shields.io/badge/10%20Days%20of%20Voice%20Agents-Challenge-orange)](#-10-days-of-voice-agents--progress)
+[![Murf Falcon](https://img.shields.io/badge/TTS-Murf%20Falcon-6366F1)](https://murf.ai/api/docs/text-to-speech/streaming)
+[![LiveKit](https://img.shields.io/badge/Transport-LiveKit-002cf2)](https://docs.livekit.io)
+[![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white)](#-day-4--persistent-memory)
+[![Financial Services](https://img.shields.io/badge/Domain-Financial%20Services-emerald)](#-day-5--financial-scheme-eligibility-tool)
 
 ---
 
-## Architecture
+## 🌟 What is FinVoice?
+
+FinVoice is a voice-first assistant designed to bridge the digital and financial literacy gap for Indian citizens. 
+
+*   **Voice-First Financial Assistance**: Natural voice conversations with low-latency streaming responses.
+*   **General Financial Information**: Plain-language explanations of basic banking accounts, digital payments, and safe practices.
+*   **Government Scheme Guidance**: Step-by-step information and eligibility criteria for key central welfare schemes.
+*   **Multilingual Interaction**: Interactive conversations in English, Hindi (Romanized Hinglish), and Telugu (Romanized Tenglish) to align with regional demographics.
+*   **Persistent Memory with User Consent**: Remembers caller names, preferences, and scheme interests across restarts.
+*   **Tool-Based Financial Eligibility Checking**: Evaluates scheme qualification criteria on non-sensitive parameter inputs.
+
+> [!IMPORTANT]  
+> **Disclaimer & Scope Limit**: FinVoice provides general financial information and does not approve loans, perform transactions, or request sensitive financial credentials (such as PINs, OTPs, or passwords).
+
+---
+
+## ✨ Key Features
+
+*   🎙️ **Real-time voice conversation** — High-speed, natural voice interactions with dual-direction audio streaming.
+*   🌐 **Multilingual support** — Intelligent language switching and response output in Hinglish, Tenglish, or English.
+*   🧠 **Persistent user memory** — Remembers returning callers and their context securely across backend restarts.
+*   🔐 **Consent-based memory** — Only stores caller information after receiving explicit verbal/text permission.
+*   🛡️ **Financial safety guardrails** — Proactively warns users and rejects saving if any sensitive information (OTP, PIN, passwords) is shared.
+*   🔧 **Scheme eligibility tool** — Domain-specific checker that processes non-sensitive parameters.
+*   💬 **Text chat** — Interactive typing option with direct conversational mirroring.
+*   📊 **Live transcript** — Live text logs of the spoken exchange shown on the screen.
+*   📱 **Responsive frontend** — Sleek Next.js frontend with beautiful live audio visualizers and light/dark theme toggle.
+*   🔊 **Murf Falcon TTS** — Sub-100ms text-to-speech engine for lifelike voice synthesis.
+*   ⚡ **LiveKit real-time communication** — WebRTC-powered low-latency pipeline for seamless audio transport.
+
+---
+
+## 🏗️ Architecture
 
 ```mermaid
-flowchart LR
-    A[🎙️ User speaks] -->|audio| B[Deepgram STT]
-    B -->|text| C[LLM]
-    C -->|response text| D[Murf Falcon TTS]
-    D -->|audio| E[LiveKit]
-    E -->|stream| F[🔊 User hears]
-
-    style A fill:#444441,stroke:#888780,color:#fff
-    style B fill:#185FA5,stroke:#85B7EB,color:#fff
-    style C fill:#534AB7,stroke:#AFA9EC,color:#fff
-    style D fill:#0F6E56,stroke:#5DCAA5,color:#fff
-    style E fill:#D85A30,stroke:#F0997B,color:#fff
-    style F fill:#444441,stroke:#888780,color:#fff
+flowchart TD
+    User([🎙️ User]) <-->|Audio Stream| FE[FinVoice Frontend]
+    FE <-->|WebRTC| LK[LiveKit Server]
+    LK <-->|Real-time Stream| Agent[AI Agent Session]
+    
+    subgraph Agent [AI Agent Session]
+        STT[Deepgram STT]
+        LLM[Gemini 3.5 Flash Lite]
+        TTS[Murf Falcon TTS]
+        
+        STT --> LLM
+        LLM --> TTS
+        
+        subgraph Memory Tools
+            lookup[lookup_user]
+            save[save_user_memory]
+        end
+        
+        subgraph Financial Tool
+            check[check_scheme_eligibility]
+        end
+        
+        LLM <--> Memory Tools
+        LLM <--> Financial Tool
+    end
+    
+    Memory Tools <--> DB[(SQLite Database)]
+    Financial Tool <--> Data[(Local Scheme Dataset)]
 ```
+
+### Major Components
+
+1.  **FinVoice Frontend**: Next.js & React SPA utilizing LiveKit Agents UI. Includes theme toggle (light/dark), customizable branding, and dynamic audio visualizer styles.
+2.  **LiveKit Server**: Orchestrates WebRTC connections, enabling low-latency real-time voice and transcript delivery.
+3.  **STT (Deepgram Nova-3)**: Converts streaming user voice inputs to text.
+4.  **LLM (Gemini 3.5 Flash Lite)**: Handles reasoning, intent categorization, safety guardrails, and tool triggering.
+5.  **Murf Falcon TTS**: Streams back high-fidelity voice responses with ultra-fast latency.
+6.  **SQLite Database (`finvoice_memory.db`)**: Holds persistent, user-consented profile data.
+7.  **Local Scheme Dataset (`schemes_data.json`)**: Embedded repository of official government scheme eligibility rules.
 
 ---
 
-## Quickstart
+## 📅 10 Days of Voice Agents – Progress
+
+| Day | Feature | Status |
+|---|---|---|
+| Day 1 | Voice Agent + Murf Falcon TTS | ✅ |
+| Day 2 | Persona, Objectives & Guardrails | ✅ |
+| Day 3 | Personalised Financial Services Frontend | ✅ |
+| Day 4 | Persistent Memory with SQLite | ✅ |
+| Day 5 | Financial Scheme Eligibility Tool | ✅ |
+
+---
+
+## 🧠 Day 4 – Persistent Memory
+
+FinVoice implements SQLite-backed persistent memory to recognise returning callers and make conversations feel natural and contextual:
+
+*   **SQLite Database**: Profile information is stored securely in `backend/finvoice_memory.db`.
+*   **Stable User ID**: The frontend sends a persistent identifier mapped to the client session.
+*   **`lookup_user()`**: Automatically checks for an existing profile at the start of each session.
+*   **`save_user_memory()`**: Updates the database with the user's name, preferred language, and non-sensitive facts.
+*   **Consent Before Saving**: The agent will explicitly ask: *"Would you like me to remember your name/language preference for future conversations?"* before storing any info.
+*   **Returning Caller Recognition**: Greet returning users by name (*"Welcome back, Devi!"*) and auto-restore their preferred language.
+*   **Memory Survival**: User profiles survive backend agent crashes or server restarts.
+
+> [!WARNING]  
+> **Privacy Guardrails**: FinVoice validates all data before writing to the SQLite database. If a user shares sensitive info (e.g. PIN, OTP, CVV, passwords, full account numbers), the memory tool rejects it and issues a security warning.
+
+---
+
+## 🔧 Day 5 – Financial Scheme Eligibility Tool
+
+FinVoice includes a dedicated eligibility checker to assess whether a user qualifies for popular central welfare schemes.
+
+### Tool API
+`check_scheme_eligibility(scheme_name, age, occupation, income_range, purpose, is_farmer, has_girl_child, girl_child_age)`
+
+### What it does
+Checks whether the user matches the criteria for supported government financial schemes:
+1.  **Pradhan Mantri Jan Dhan Yojana (PMJDY)**
+2.  **Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)**
+3.  **Atal Pension Yojana (APY)**
+4.  **Sukanya Samriddhi Yojana (SSY)**
+5.  **Pradhan Mantri MUDRA Yojana (PMMY)**
+6.  **Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)**
+7.  **Pradhan Mantri Suraksha Bima Yojana (PMSBY)**
+
+### When the tool is triggered
+It is triggered automatically when the user asks a qualification-related question:
+> *"Am I eligible for the Sukanya Samriddhi Yojana?"*  
+> *"Can I get a Mudra loan to start a kirana shop?"*
+
+### When it is NOT triggered
+General information requests are answered directly by the LLM without invoking the tool, saving API cost and latency:
+> *"What is a savings account?"*  
+> *"How do fixed deposits work?"*
+
+### Data Source
+*   **LOCAL DATASET**: All checks run against the embedded [schemes_data.json](file:///c:/Users/mumma/OneDrive/Desktop/Agent/murf-livekit-starter/backend/src/schemes_data.json) dataset.
+*   **Official Sources**: Data is sourced from official government portals (`pmjdy.gov.in`, `pmkisan.gov.in`, `myscheme.gov.in`, `nsiindia.gov.in`, `mudra.org.in`).
+*   **Verification Date**: Verified on **August 10, 2026**.
+
+### Tool Response & Safety
+*   **No Raw JSON**: The tool returns structured JSON data, which the agent naturally translates into clear, spoken sentences.
+*   **Failure Handling**: If the local database is corrupt/unreachable, or if `SIMULATE_ELIGIBILITY_FAILURE=true` is set, the tool returns a status block and the agent responds:  
+    *"I'm unable to access the scheme information right now, so I don't want to give you an inaccurate eligibility answer. Please try again shortly."* (No hallucinated answers).
+*   **Preliminary Status**: The agent always clarifies that eligibility checks provide general guidance and final approval rests with the lender or governing authority.
+
+---
+
+## 🎥 Day 5 Demo
+
+1.  **Inquiry**: User asks, *"Am I eligible for Sukanya Samriddhi Yojana?"*
+2.  **Intent Recognition**: FinVoice identifies that a government scheme eligibility check is required.
+3.  **Execution**: The agent triggers `check_scheme_eligibility(scheme_name='Sukanya Samriddhi Yojana')`.
+4.  **Information Gathering**: If required details (like whether the caller has a girl child and her age) are missing from the caller's database profile, the agent asks for them.
+5.  **Output**: Once the parameters are loaded, the tool checks the rules and the agent speaks the response naturally.
+6.  **Fallback**: If the data file is missing or failure is simulated, it falls back to the safety message gracefully.
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| **Next.js 14** | Frontend application framework |
+| **React & TypeScript** | User interface & type-safe state management |
+| **Tailwind CSS** | Premium custom responsive styling |
+| **LiveKit Agents SDK** | Real-time voice agent connection & pipeline orchestration |
+| **Murf Falcon** | Text-to-Speech engine (en-IN-anusha voice) |
+| **Google Gemini** | LLM reasoning & intent engine (gemini-3.5-flash-lite) |
+| **Deepgram Nova-3** | Real-time speech-to-text recognition |
+| **SQLite** | Persistent user profile storage |
+| **Python 3.10+** | Backend agent environment (managed via `uv`) |
+
+---
+
+## 🔐 Financial Safety
+
+FinVoice prioritizes the security of users. FinVoice will **NEVER**:
+*   Ask for or store **OTP** (One-Time Password)
+*   Ask for or store **ATM/UPI PIN**
+*   Ask for or store **passwords** or credentials
+*   Ask for bank **account numbers** or **debit/credit card numbers**
+*   Request **Aadhaar** or **PAN** numbers
+*   Promise or guarantee loan approvals
+*   Perform financial transfers or transactions
+
+If any sensitive term is spoken or typed, FinVoice alerts the user immediately and refuses to write it to memory.
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
+*   **Python 3.10+** and **[uv](https://docs.astral.sh/uv/)** package manager.
+*   **Node.js 18+** and **pnpm** package manager.
+*   A LiveKit account and project credentials.
 
-- **Python** 3.10+
-- **[uv](https://docs.astral.sh/uv/)** - fast Python package manager
-  ```bash
-  # macOS/Linux
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  # Windows (PowerShell)
-  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-  ```
-- **Node.js** 18+
-- **pnpm** — fast Node package manager
-  ```bash
-  npm install -g pnpm
-  ```
-- A [LiveKit](https://cloud.livekit.io/) project (free tier available)
+### Installation
 
-### Step 1: Clone the repo
+1.  **Clone the Repository**:
+    ```bash
+    git clone https://github.com/murf-ai/murf-livekit-starter.git
+    cd murf-livekit-starter
+    ```
 
-```bash
-git clone https://github.com/murf-ai/murf-livekit-starter.git
-cd murf-livekit-starter
-```
+2.  **Configure Environment**:
+    Create `.env.local` in both `backend/` and `frontend/` (copied from their respective `.env.example`).
+    Ensure the following keys are set:
+    *   `LIVEKIT_URL`
+    *   `LIVEKIT_API_KEY`
+    *   `LIVEKIT_API_SECRET`
+    *   `MURF_API_KEY`
+    *   `DEEPGRAM_API_KEY`
+    *   `GOOGLE_API_KEY`
 
-### Step 2: Set up environment variables
+3.  **Install Backend Dependencies**:
+    ```bash
+    cd backend
+    uv sync
+    uv run python src/agent.py download-files
+    ```
 
-Create `.env.local` in both `backend/` and `frontend/` (copy from `.env.example` in each). You need:
+4.  **Install Frontend Dependencies**:
+    ```bash
+    cd ../frontend
+    pnpm install
+    ```
 
-| Variable                               | Where to get it                                        | Required |
-| -------------------------------------- | ------------------------------------------------------ | -------- |
-| `LIVEKIT_URL`                          | LiveKit Cloud dashboard                                | Yes      |
-| `LIVEKIT_API_KEY`                      | LiveKit Cloud dashboard                                | Yes      |
-| `LIVEKIT_API_SECRET`                   | LiveKit Cloud dashboard                                | Yes      |
-| `MURF_API_KEY`                         | [murf.ai/api/dashboard](https://murf.ai/api/dashboard) | Yes      |
-| `DEEPGRAM_API_KEY`                     | [deepgram.com](https://deepgram.com)                   | Yes      |
-| `GOOGLE_API_KEY` (or `OPENAI_API_KEY`) | Depends on LLM choice                                  | Yes      |
+### Running Locally
 
-### Step 3: Install backend dependencies
+You can launch the frontend, backend, and LiveKit server simultaneously.
 
-```bash
-cd backend
-uv sync
-uv run python src/agent.py download-files
-```
+**Option A (All-in-one script)**:
+From the root folder:
+```powershell
+# Windows
+.\start_app.ps1
 
-### Step 4: Install frontend dependencies
-
-```bash
-cd frontend
-pnpm install
-```
-
-### Step 5: Run it
-
-**Option A - All-in-one (from repo root):**
-
-```bash
 # macOS/Linux
 chmod +x start_app.sh
 ./start_app.sh
-
-# Windows (PowerShell)
-.\start_app.ps1
 ```
 
-**Option B - Separate terminals:**
-
+**Option B (Separate terminals)**:
 ```bash
-# Terminal 1 — LiveKit Server
-livekit-server --dev
+# Terminal 1: LiveKit server in dev mode
+.\livekit-server.exe --dev
 
-# Terminal 2 — Backend agent
+# Terminal 2: Python voice agent
 cd backend && uv run python src/agent.py dev
 
-# Terminal 3 — Frontend
+# Terminal 3: Next.js frontend
 cd frontend && pnpm dev
 ```
 
-Then open **http://localhost:3000** in your browser.
-
-You should now see the voice agent UI. Click **Start talking**, allow microphone access, and speak — the agent will respond with Murf Falcon TTS. Ensure your backend and (if using Option B) LiveKit server are running.
+Open [http://localhost:3000](http://localhost:3000) to start testing.
 
 ---
 
-## Deploy
-
-Want to deploy this beyond localhost? You'll need to deploy **two services**: the backend agent and the frontend. Both must use the same LiveKit project.
-
-> This is a two-service app — the backend agent and the frontend UI deploy separately. You'll need both running and connected to the same LiveKit project.
-
-### Backend (Python agent) — Deploy to Railway
-
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/tIVCF1?referralCode=cNjn2P&utm_medium=integration&utm_source=template&utm_campaign=generic)
-
-Set these environment variables in Railway:
-
-- `MURF_API_KEY`
-- `DEEPGRAM_API_KEY`
-- `GOOGLE_API_KEY` or `OPENAI_API_KEY`
-- `LIVEKIT_URL`
-- `LIVEKIT_API_KEY`
-- `LIVEKIT_API_SECRET`
-
-The backend runs as a long-lived Python process that connects to LiveKit as an agent. Railway handles this well.
-
-### Frontend (Next.js) — Deploy to Vercel
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/murf-ai/murf-livekit-starter&root-directory=frontend&env=LIVEKIT_URL,LIVEKIT_API_KEY,LIVEKIT_API_SECRET&project-name=murf-voice-agent&repository-name=murf-voice-agent)
-
-Set these environment variables in Vercel:
-
-- `LIVEKIT_URL`
-- `LIVEKIT_API_KEY`
-- `LIVEKIT_API_SECRET`
-- `AGENT_NAME` (optional — for explicit agent dispatch)
-
-The frontend is a standard Next.js app. Point it at the same LiveKit instance your backend agent is connected to.
-
-### Connecting them
-
-The frontend and backend don't call each other directly — they both connect to **LiveKit**, which handles the real-time audio transport.
-
-1. Use the **same** `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` on both Railway and Vercel
-2. Set `AGENT_NAME=my-agent` on Vercel — this matches the `agent_name="my-agent"` registered in `backend/src/agent.py`
-3. Verify: Railway logs should show the agent connected to LiveKit. Open your Vercel URL, click **Start talking** — the agent should respond
-
-If the agent doesn't connect, double-check that both services point to the same LiveKit project and that the backend is running (check Railway logs).
-
----
-
-## Change the Use Case
-
-The default system prompt makes this a **customer support agent**. You can change the agent’s behavior by editing the prompt.
-
-**Where the prompt lives:** `backend/src/agent.py`- the `SYSTEM_PROMPT` constant (near the top of the file, after the imports). Change that string to change what your voice agent does.
-
-### Example prompts (copy-paste)
-
-**Customer Support (default):**
-
-```
-You are a friendly and efficient customer support agent for a tech company. Help users with account issues, billing questions, and product troubleshooting. Be concise, empathetic, and solution-oriented. If you don't know something, say so honestly and offer to escalate.
-```
-
-**Language Tutor:**
-
-```
-You are a patient and encouraging language tutor helping the user practice conversational Spanish. Speak primarily in Spanish but switch to English to explain grammar or vocabulary when needed. Correct mistakes gently and suggest better phrasing. Keep conversations natural and fun.
-```
-
-**AI Receptionist:**
-
-```
-You are a professional receptionist for a medical clinic. Help callers schedule appointments, answer questions about office hours and services, and take messages for doctors. Be warm but efficient. Ask for the caller's name and reason for calling upfront.
-```
-
-See the Configuration section below for voice, STT, and LLM options.
-
----
-
-## Configuration
-
-### Murf voice
-
-Edit the `tts=murf.TTS(...)` call in `backend/src/agent.py`. Set the `voice` argument to any Murf voice ID. Examples:
-
-- `Anisha` — Indian English (female, default in this starter)
-- `Pooja` — Indian English (female)
-- `Samar` — Indian English (male)
-- `Amara` — US English (female)
-- `Gordon` — US English (male)
-- `Hazel` — UK English (female)
-- `Bertie` — UK English (male)
-
-Browse all voices: [Murf Voice Library](https://murf.ai/api/docs/voices-styles/voice-library).
-
-### STT provider
-
-STT is configured in `backend/src/agent.py` in the `AgentSession(stt=...)` call. The default is Deepgram (`deepgram.STT(model="nova-3")`). You can swap to another LiveKit-compatible STT plugin if needed.
-
-### LLM (Gemini vs OpenAI)
-
-- **Gemini (default):** Set `GOOGLE_API_KEY` and use `llm=google.LLM(model="gemini-3.5-flash-lite")` in `agent.py`.
-- **OpenAI:** Set `OPENAI_API_KEY`, add the OpenAI plugin, and use the corresponding `llm=openai.LLM(...)` in `agent.py`.
-
-### Audio format
-
-Murf Falcon and LiveKit handle audio format internally. For advanced options, see [Murf API docs](https://murf.ai/api/docs) and [LiveKit docs](https://docs.livekit.io).
-
----
-
-## Project Structure
+## 📂 Project Structure
 
 ```
 murf-livekit-starter/
-├── backend/                 # Python voice agent (LiveKit Agents + Murf Falcon)
+├── backend/                        # Python voice agent pipeline
 │   ├── src/
-│   │   └── agent.py         # Agent entrypoint, pipeline (STT/LLM/TTS), system prompt
-│   ├── tests/               # Agent tests
-│   ├── .env.example         # Backend env template
-│   ├── pyproject.toml       # Python deps (uv)
-│   └── railway.toml         # Railway deploy config
-├── frontend/                # Next.js UI for voice sessions
+│   │   ├── agent.py                # Main agent logic & tool registrations
+│   │   ├── memory_db.py            # SQLite user memory API (Day 4)
+│   │   ├── schemes_checker.py      # Qualification evaluation logic (Day 5)
+│   │   └── schemes_data.json       # Government schemes database (Verified Aug 10, 2026)
+│   ├── tests/
+│   │   └── test_agent.py           # Integration & safety evaluation tests
+│   ├── pyproject.toml              # Python dependency file (uv)
+│   └── railway.toml                # Railway deployment configuration
+├── frontend/                       # React / Next.js web dashboard
 │   ├── app/
-│   │   ├── page.tsx         # Main page
-│   │   └── api/token/       # LiveKit token endpoint (dev)
-│   ├── components/          # UI (agents-ui, app config, theme)
-│   ├── app-config.ts        # Branding, title, button text, accent
-│   ├── .env.example         # Frontend env template
-│   └── package.json         # Node deps (pnpm)
-├── start_app.sh             # Start LiveKit + backend + frontend (macOS/Linux)
-├── start_app.ps1            # Start LiveKit + backend + frontend (Windows)
-├── README.md                # This file
+│   │   ├── page.tsx                # Main audio visualizer page
+│   │   └── api/token/route.ts      # LiveKit token dispatch endpoint
+│   ├── components/                 # UI components
+│   │   ├── agents-ui/              # Voice visualizer widgets
+│   │   └── app/                    # Theme managers & layout wrappers
+│   ├── app-config.ts               # Color scheme and branding configuration
+│   └── package.json                # Node dependencies (pnpm)
+├── start_app.ps1                   # Windows startup script
+├── start_app.sh                    # Unix startup script
+├── TEST_CONVERSATIONS.md           # Evaluation test transcripts
+├── RED_TEAM.md                     # Security & robustness reports
+└── README.md                       # Project documentation
 ```
 
-For deeper documentation on each part, see:
+---
 
-- [Backend Documentation](./backend/README.md) — agent pipeline, voice/LLM/STT configuration, testing, deployment
-- [Frontend Documentation](./frontend/README.md) — UI customization, visualizers, theming, component architecture
+## 🧪 Testing
+
+FinVoice supports tests for critical capabilities:
+
+1.  **Voice conversation**: Verify the agent answers user inputs correctly.
+2.  **Language switching**: Speak in Hinglish or Tenglish and confirm the agent responds in the same Romanized script.
+3.  **Memory persistence**: Connect, share your name, consent to save, disconnect, reconnect, and confirm that the agent greets you by name.
+4.  **Consent handling**: Say "No" when asked if it should remember your details, and check that no SQLite record is modified.
+5.  **Financial safety guardrails**: Try sharing a dummy OTP (e.g. "my OTP is 482910") and verify the warning protocol triggers.
+6.  **Eligibility tool trigger**: Ask "Am I eligible for Mudra loan?" and verify `check_scheme_eligibility` runs.
+7.  **Normal question without tool**: Ask "What is UPI?" and verify it is answered conversationally without a tool run.
+8.  **Data-source failure fallback**: Run with `SIMULATE_ELIGIBILITY_FAILURE=true` in `backend/.env.local`, ask a scheme question, and verify the graceful error message.
+
+To run the automated agent test suite:
+```bash
+cd backend
+uv run pytest
+```
 
 ---
 
-## Links
+## 📸 Demo / Screenshots
 
-- [Murf API Docs](https://murf.ai/api/docs)
-- [Murf Voice Library](https://murf.ai/api/docs/voices-styles/voice-library)
-- [LiveKit Docs](https://docs.livekit.io)
-- [Deepgram Docs](https://developers.deepgram.com)
-- [Murf Falcon Benchmarks](https://murf.ai/falcon/benchmarks)
-- [TTS Latency Benchmarker](https://github.com/sahilsgupta/tts-latency-benchmarker) — run your own p50/p95 tests across providers
-- [Murf Discord](https://discord.gg/FbKAy96Sz7)
-- [Murf Startup Incubator](https://murf.ai/api) — 50M free characters for startups
+Refer to the project's visual dashboard and visualizer components under `frontend/public/` for og-image styling.
+
+![FinVoice Preview](frontend/public/opengraph-image-bg.png)
 
 ---
 
-## License
+## 🚀 Future Improvements
 
-MIT
+*   **Expanded Scheme Integrations**: Add more regional state and central government schemes.
+*   **Live Official API Connections**: Fetch real-time interest rates and rules from official bank APIs.
+*   **Deeper Multilingual Speech**: Support native scripts (Devanagari, Telugu scripts) directly with compatible TTS engines.
+*   **Forget-Memory Feature**: Allow callers to ask the agent to erase their stored profile completely ("Forget my details").
+*   **Additional Domain Tools**: Add interest calculators, SIP calculators, and loan EMI estimators.
+
+---
+
+## 👨‍💻 Built For
+
+Developed for the **10 Days of Voice Agents** challenge. Built with ❤️ using Murf Falcon + LiveKit.
+
+#10DaysOfVoiceAgents  
+#VoiceForBharat
