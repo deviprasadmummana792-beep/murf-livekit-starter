@@ -210,6 +210,16 @@ docker build -t murf-voice-agent .
 docker run --env-file .env.local murf-voice-agent
 ```
 
+## Day 5 Upgrades - Scheme Eligibility Assessment Tool
+
+### Tool: `check_scheme_eligibility`
+- **What it does**: Determines whether a user qualifies for a government financial scheme based on non-sensitive parameters (age, occupation, purpose, has_girl_child, etc.).
+- **When it is called**: Called automatically by the LLM when the user asks whether they may qualify for a government financial scheme or asks for an eligibility assessment (e.g. "Am I eligible for Sukanya Samriddhi?"). It is **not** called for general financial terms or definitions (e.g. "What is a savings account?") or loan approvals (e.g. "Can you approve my loan?").
+- **Data Source**: Uses a structured local dataset ([schemes_data.json](src/schemes_data.json)) containing official eligibility rules for 7 key schemes. The data is **LOCAL** (not live API).
+- **Verification Date**: Verified on August 10, 2026.
+- **Failure Handling**: If the database loading fails, or the `SIMULATE_ELIGIBILITY_FAILURE` environment variable is set to `"true"`, the system returns a status/error block. The agent catches this and states: *"I'm unable to access the scheme information right now, so I don't want to give you an inaccurate eligibility answer. Please try again shortly."* The tool never silently fails.
+- **Financial Safety Limitations**: The eligibility tool is informational only. Results are preliminary general guidance; final approval depends entirely on the relevant lender/authority. The agent will never promise loan approval, scheme approval, guaranteed benefits, or guaranteed eligibility.
+
 ## Project Structure
 
 ```
