@@ -4,7 +4,6 @@ import type { ComponentProps, HTMLAttributes, ReactElement } from 'react';
 import { createContext, memo, useContext, useEffect, useState } from 'react';
 import type { FileUIPart, UIMessage } from 'ai';
 import { ChevronLeftIcon, ChevronRightIcon, PaperclipIcon, XIcon } from 'lucide-react';
-import { Streamdown } from 'streamdown';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup, ButtonGroupText } from '@/components/ui/button-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -258,14 +257,16 @@ export const MessageBranchPage = ({ className, ...props }: MessageBranchPageProp
   );
 };
 
-export type MessageResponseProps = ComponentProps<typeof Streamdown>;
+export type MessageResponseProps = HTMLAttributes<HTMLDivElement>;
 
 export const MessageResponse = memo(
-  ({ className, ...props }: MessageResponseProps) => (
-    <Streamdown
-      className={cn('size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0', className)}
+  ({ className, children, ...props }: MessageResponseProps) => (
+    <div
+      className={cn('size-full whitespace-pre-wrap [&>*:first-child]:mt-0 [&>*:last-child]:mb-0', className)}
       {...props}
-    />
+    >
+      {children}
+    </div>
   ),
   (prevProps, nextProps) => prevProps.children === nextProps.children
 );
